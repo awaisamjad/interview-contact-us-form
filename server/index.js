@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const db = require('./database');
 
 dotenv.config();
 
@@ -93,11 +94,19 @@ app.post('/send', (req, res) => {
                     message: 'Something went wrong. Try again later',
                 });
             } else {
-                // Add a status 200 here
+                // Added a status 200 here
                 res.status(200).send({
                     success: true,
                     message:
                         'Thanks for contacting us. We will get back to you shortly',
+                });
+                const sql = `INSERT INTO contact_requests (name, email, subject, message) VALUES (?, ?, ?, ?)`;
+                db.run(sql, [req.body.name, req.body.email, req.body.subject, req.body.message], (err) => {
+                    if (err) {
+                        console.error('Error inserting data:', err.message);
+                    } else {
+                        console.log('Data inserted successfully');
+                    }
                 });
             }
         });
